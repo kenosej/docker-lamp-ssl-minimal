@@ -1,0 +1,64 @@
+version: '3'
+
+networks:
+  laravel:
+
+services:
+  apache:
+    build:
+      context: .
+    container_name: apache
+    restart: 'always'
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./htdocs:/var/www/html
+      - ./config/vhosts:/etc/apache2/sites-enabled
+      - ./logs/apache2:/var/log/apache2
+    depends_on:
+      - mysql
+    networks:
+      - laravel
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: 'always'
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: food_delivery
+      MYSQL_USER: food_delivery
+      MYSQL_PASSWORD: example
+    networks:
+      - laravel
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    depends_on:
+      - apache
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: food_delivery
+      PMA_PASSWORD: example
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: food_delivery
+      MYSQL_USER: food_delivery
+      MYSQL_PASSWORD: example
+    ports:
+      - '8080:80'
+    networks:
+      - laravel
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel
